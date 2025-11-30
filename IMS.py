@@ -17,13 +17,27 @@ st.title("📚 인하대 출판부 재고 관리 시스템")
 def load_data(file_path, columns):
     if not os.path.exists(file_path):
         df = pd.DataFrame(columns=columns)
-        df.to_csv(file_path, index=False)
+        df.to_csv(file_path, index=False, encoding='utf-8-sig')
         return df
-    return pd.read_csv(file_path)
+
+    # 인코딩 에러 방지 및 컬럼 무결성 확인 로직 추가
+    try:
+        df = pd.read_csv(file_path, encoding='utf-8')
+    except UnicodeDecodeError:
+        try:
+            df = pd.read_csv(file_path, encoding='cp949')
+        except:
+            df = pd.read_csv(file_path, encoding='euc-kr')
+
+    # 파일은 읽었으나, 필요한 컬럼('책 이름' 등)이 없으면(깨졌으면) 초기화
+    if not set(columns).issubset(df.columns):
+        df = pd.DataFrame(columns=columns)
+
+    return df
 
 
 def save_data(df, file_path):
-    df.to_csv(file_path, index=False)
+    df.to_csv(file_path, index=False, encoding='utf-8-sig')
 
 
 # 데이터 불러오기
